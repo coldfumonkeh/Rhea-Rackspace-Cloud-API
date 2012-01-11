@@ -1,0 +1,67 @@
+RACKSPACE CLOUD APPLICATION COLDFUSION COMPONENT WRAPPER
+
+Codename: RHEA
+
+LICENSE:
+========
+
+	Copyright 2010, Fuzzy Orange Limited (http://www.fuzzyorange.co.uk)
+	
+	Licensed under the Apache License, Version 2.0 (the "License"); 
+	you may not use this file except in compliance with the License. 
+	You may obtain a copy of the License at 
+	
+		http://www.apache.org/licenses/LICENSE-2.0 
+	
+	Unless required by applicable law or agreed to in writing, software 
+	distributed under the License is distributed on an "AS IS" BASIS, 
+	WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. 
+	See the License for the specific language governing permissions and 
+	limitations under the License.
+
+	For full License details, please read the LICENSE file available with this download.
+
+
+AUTHORS:
+========
+
+	Developed by Matt Gifford AKA coldfumonkeh, Senior Developer, Fuzzy Orange Ltd
+	http://www.fuzzyorange.co.uk
+	http://www.mattgifford.co.uk
+
+	
+INSTALLATION:
+=============
+
+	Installation directions can be found in /Installation/Rhea_Cloud.doc or /Installation/Rhea_Cloud.pdf
+	
+
+FILE MANIFEST:
+==============
+
+	/LICENSE
+	/README
+	
+	/Installation/Rhea_Cloud.doc
+	/Installation/Rhea_Cloud.pdf
+
+	/Application.cfc
+	/index.cfm
+	
+	/com/fuzzyorange/account.cfc
+	/com/fuzzyorange/cdnaccount.cfc
+	/com/fuzzyorange/cloudAccountDetails.cfc
+	/com/fuzzyorange/cloudFiles.cfc
+	/com/fuzzyorange/cloudServers.cfc
+	/com/fuzzyorange/cloudUtils.cfc
+	/com/fuzzyorange/rackspaceCloud.cfc
+	/com/fuzzyorange/servers.cfc
+	/com/fuzzyorange/storage.cfc
+	
+	/com/fuzzyorange/beans/authResponse.cfc
+	
+	
+CHANGELOG:
+==========
+
+
