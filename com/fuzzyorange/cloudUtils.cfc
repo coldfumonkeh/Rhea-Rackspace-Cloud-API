@@ -74,6 +74,7 @@ $${description}
 	            	stuResponse.response 	= cfhttp;
 					stuResponse.success		= statusCheck.success; 
 					stuResponse.message		= statusCheck.message;            
+					stuResponse.fileContent = cfhttp.fileContent;         
 	            </cfscript>
 		<cfreturn stuResponse />
 	</cffunction>
@@ -101,6 +102,7 @@ $${description}
             		stuResponse.response 	= cfhttp;
 					stuResponse.success		= statusCheck.success; 
 					stuResponse.message		= statusCheck.message;         	                
+					stuResponse.fileContent = cfhttp.fileContent;       	                
                 </cfscript>
 		<cfreturn stuResponse />
 	</cffunction> 
@@ -123,6 +125,9 @@ $${description}
 				</cfcase>
 				<cfcase value="objectMeta">
 					<cfset stuResponse.data = arguments.data.ResponseHeader />
+				</cfcase>
+				<cfcase value="object">
+					<cfset stuResponse.data = arguments.data.fileContent.toByteArray() />
 				</cfcase>
 				<cfdefaultcase>
 					<cfset stuResponse.data = arguments.data.FileContent />

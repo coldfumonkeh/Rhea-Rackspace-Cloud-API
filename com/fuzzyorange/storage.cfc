@@ -186,6 +186,31 @@ $${description}
 				</cfscript>
 		<cfreturn response />
 	</cffunction>
+
+	<cffunction name="getObject" access="public" output="true" returntype="Any" hint="I retrieve an Object's metadata">
+		<cfargument name="authResponse"		required="true" 	type="com.fuzzyorange.beans.authResponse" 	hint="The authResponse bean" />
+		<cfargument name="containerName" 	required="true" 	type="string" 								hint="Name of the Container that contains the Object you wish to retrieve." />
+		<cfargument name="objectName"		required="true" 	type="string"								hint="The name of the Object" />
+		<cfargument name="format" 			required="true" 	type="string" 								hint="Specify either JSON or XML to return the respective serialized response." />
+			<cfset var response 	= "" />
+			<cfset var strURL		= '' />
+			<cfset var stuMeta		= structNew() />
+				<cfscript>
+					strURL			= arguments.authResponse.getStorageURL() & '/' 
+										& arguments.containerName & '/' & arguments.objectName;
+					response 		= makeAPICall(remoteURL=strURL,
+										remoteMethod='GET',
+										authToken=arguments.authResponse.getAuthToken());
+										writedump(response );
+										writeDump("WTF");
+					response 		= handleResponseOutput(response.response, 'Object');
+					if(response.message == '404 Not Found') {
+						response.message = response.message & '. The requested object "' & 
+								arguments.containerName & '" does not exist';
+					}
+				</cfscript>
+		<cfreturn response />
+	</cffunction>
 			
 	<cffunction name="putObject" access="public" output="false" returntype="Any" hint="I am used to write, or overwrite, an Object's metadata and content">
 		<cfargument name="authResponse"		required="true" 	type="com.fuzzyorange.beans.authResponse" 	hint="The authResponse bean" />
