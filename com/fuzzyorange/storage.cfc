@@ -201,8 +201,6 @@ $${description}
 					response 		= makeAPICall(remoteURL=strURL,
 										remoteMethod='GET',
 										authToken=arguments.authResponse.getAuthToken());
-										writedump(response );
-										writeDump("WTF");
 					response 		= handleResponseOutput(response.response, 'Object');
 					if(response.message == '404 Not Found') {
 						response.message = response.message & '. The requested object "' & 
