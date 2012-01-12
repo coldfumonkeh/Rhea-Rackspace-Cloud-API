@@ -130,11 +130,20 @@ $${description}
 		<cfargument name="format" 			required="false" 	type="string" 	default="#getReturnFormat()#"	hint="Specify either JSON or XML to return the respective serialized response." />
 		<cfreturn getStorage().getObjectMeta(getAuthResponse(),arguments.containerName,arguments.objectName,arguments.format) />
 	</cffunction>
+	
 	<cffunction name="getObject" access="public" output="false" returntype="Any" hint="I retrieve an Object">
 		<cfargument name="containerName" 	required="true" 	type="string" 									hint="Name of the Container that contains the Object you wish to retrieve." />
 		<cfargument name="objectName"		required="true" 	type="string"									hint="The name of the Object" />
 		<cfargument name="format" 			required="false" 	type="string" 	default="#getReturnFormat()#"	hint="Specify either JSON or XML to return the respective serialized response." />
 		<cfreturn getStorage().getObject(getAuthResponse(),arguments.containerName,arguments.objectName,arguments.format) />
+	</cffunction>
+	
+	<cffunction name="setObjectMeta" access="public" output="false" returntype="Any" hint="I am used to write, or overwrite, an Object's metadata">
+		<cfargument name="containerName" 	required="true" 	type="string"									hint="Name of the container you wish to place the object into." />
+		<cfargument name="object"			required="true" 	type="Any"										hint="The Object data" />
+		<cfargument name="metaData"			required="true" 	type="struct"									hint="The Object MetaData" />		
+		<cfargument name="format" 			required="false" 	type="string"	default="#getReturnFormat()#"	hint="Specify either JSON or XML to return the respective serialized response." />
+		<cfreturn getStorage().setObjectMeta(getAuthResponse(),arguments.containerName,arguments.object,arguments.metadata,arguments.format) />
 	</cffunction>
 	
 	<cffunction name="putObject" access="public" output="false" returntype="Any" hint="I am used to write, or overwrite, an Object's metadata and content">

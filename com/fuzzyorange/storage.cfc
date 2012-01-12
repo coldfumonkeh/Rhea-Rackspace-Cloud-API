@@ -176,8 +176,9 @@ $${description}
 					strURL			= arguments.authResponse.getStorageURL() & '/' 
 										& arguments.containerName & '/' & arguments.objectName;
 					response 		= makeAPICall(remoteURL=strURL,
-										remoteMethod='GET',
+										remoteMethod='HEAD',
 										authToken=arguments.authResponse.getAuthToken());
+								
 					response 		= handleResponseOutput(response.response, 'objectMeta');
 					if(response.message == '404 Not Found') {
 						response.message = response.message & '. The requested object "' & 
@@ -186,8 +187,32 @@ $${description}
 				</cfscript>
 		<cfreturn response />
 	</cffunction>
-
-	<cffunction name="getObject" access="public" output="true" returntype="Any" hint="I retrieve an Object's metadata">
+	
+	<cffunction name="setObjectMeta" access="public" output="false" returntype="Any" hint="I am used to write, or overwrite, an Object's metadata">
+		<cfargument name="authResponse"		required="true" 	type="com.fuzzyorange.beans.authResponse" 	hint="The authResponse bean" />
+		<cfargument name="containerName" 	required="true" 	type="string" 								hint="Name of the Container you wish to put the Object into." />
+		<cfargument name="object"			required="true" 	type="Any"									hint="The Object." />
+		<cfargument name="metaData"			required="true" 	type="struct" 								hint="Structure containing the meataData" />
+		<cfargument name="format" 			required="true" 	type="string" 								hint="Specify either JSON or XML to return the respective serialized response." />
+			<cfset var response = "" />
+			<cfset var strURL	= '' />
+			<cfset var currentMeta = getObjectMeta(authResponse,containerName,object,format)>
+				<cfscript>
+					stuFileData = structNew();
+					stuFileData['Content-Type'] = currentMeta.data['Content-Type'];
+					stuFileData.metaData = arguments.metaData;
+					strURL		= arguments.authResponse.getStorageURL() & '/' & arguments.containerName & '/' & arguments.object;
+					response 	= makeAPICall(remoteURL=strURL,
+										remoteMethod='POST',
+										authToken=arguments.authResponse.getAuthToken(),
+										postArgs=stuFileData);
+					response 	= handleResponseOutput(response.response, 'objectMeta');
+				</cfscript>
+		<cfreturn response />
+	</cffunction>
+			
+			
+	<cffunction name="getObject" access="public" output="false" returntype="Any" hint="I retrieve an Object's metadata">
 		<cfargument name="authResponse"		required="true" 	type="com.fuzzyorange.beans.authResponse" 	hint="The authResponse bean" />
 		<cfargument name="containerName" 	required="true" 	type="string" 								hint="Name of the Container that contains the Object you wish to retrieve." />
 		<cfargument name="objectName"		required="true" 	type="string"								hint="The name of the Object" />
@@ -201,6 +226,8 @@ $${description}
 					response 		= makeAPICall(remoteURL=strURL,
 										remoteMethod='GET',
 										authToken=arguments.authResponse.getAuthToken());
+										writedump(response );
+										writeDump("WTF");
 					response 		= handleResponseOutput(response.response, 'Object');
 					if(response.message == '404 Not Found') {
 						response.message = response.message & '. The requested object "' & 
@@ -209,7 +236,7 @@ $${description}
 				</cfscript>
 		<cfreturn response />
 	</cffunction>
-			
+	
 	<cffunction name="putObject" access="public" output="false" returntype="Any" hint="I am used to write, or overwrite, an Object's metadata and content">
 		<cfargument name="authResponse"		required="true" 	type="com.fuzzyorange.beans.authResponse" 	hint="The authResponse bean" />
 		<cfargument name="containerName" 	required="true" 	type="string" 								hint="Name of the Container you wish to put the Object into." />
