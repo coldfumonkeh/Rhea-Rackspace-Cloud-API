@@ -8,8 +8,9 @@ $LastChangedDate: 2010-02-24 23:32:03 +0000 (Wed, 24 Feb 2010) $
 Description:
 $${description}
 --->
-<cfcomponent displayname="cloudUtils" output="false" hint="I am the cloudUtils class containing core variables, util methods and common functions">
 
+<cfcomponent displayname="cloudUtils" output="false" hint="I am the cloudUtils class containing core variables, util methods and common functions">
+	<cfset variables.META_HEADER_PREFIX = "X-Object-Meta-">
 	<cfset variables.instance = StructNew() />
 	
 	<cffunction name="init" access="public" output="false" returntype="com.fuzzyorange.cloudUtils" hint="I am the constructor method for the cloudUtils class">
@@ -51,7 +52,18 @@ $${description}
 		<cfargument name="postArgs"			required="false" 	type="struct" 	hint="A structure containing information relating to file uploads." />
 			<cfset var cfhttp	 	= '' />
 			<cfset var statusCheck	= '' />
-			<cfset var stuResponse 	= StructNew() />		
+			<cfset var stuResponse 	= StructNew() />	
+			
+			<!---
+			<cfhttp method="POST" charset="utf-8" url="#variables.mosso_storage_url#/#_encodeContainerName(arguments.container)#/#_encodeObjectName(arguments.objectName)#">
+				<cfhttpparam type="header" name="X-Auth-Token" value="#variables.mosso_auth_token#" />
+				<cfif isDefined("arguments.objectMeta")>
+					<cfloop list="#StructKeyList(arguments.objectMeta)#" index="i">
+						<cfhttpparam type="header" name="#variables.MOSSO_META_HEADER_PREFIX##i#" value="#StructFind(arguments.objectMeta, i)#" />
+					</cfloop>
+				</cfif>
+		</cfhttp>
+		--->	
 				<cfhttp url="#arguments.remoteURL#"
 					 method="#arguments.remoteMethod#"
 					 useragent="cloudFiles">
@@ -67,13 +79,20 @@ $${description}
 						<cfif structKeyExists(arguments.postArgs, 'file')>
 							<cfhttpparam name="file" type="file" file="#arguments.postArgs['file']#" />
 						</cfif>
+						<cfif structKeyExists(arguments.postArgs, 'metaData')>
+							<cfloop list="#StructKeyList(arguments.postArgs.metaData)#" index="i">
+								<cfhttpparam type="header" name="#variables.META_HEADER_PREFIX##i#" value="#StructFind(arguments.postArgs.metaData, i)#" />
+							</cfloop>
+						</cfif>
 					</cfif>
 				</cfhttp>
+				
+				
 				<cfscript>
 					statusCheck 			= checkStatusCode(cfhttp.StatusCode);
 	            	stuResponse.response 	= cfhttp;
 					stuResponse.success		= statusCheck.success; 
-					stuResponse.message		= statusCheck.message;            
+					stuResponse.message		= statusCheck.message;   
 					stuResponse.fileContent = cfhttp.fileContent;         
 	            </cfscript>
 		<cfreturn stuResponse />
@@ -101,7 +120,7 @@ $${description}
 					statusCheck 			= checkStatusCode(cfhttp.StatusCode);
             		stuResponse.response 	= cfhttp;
 					stuResponse.success		= statusCheck.success; 
-					stuResponse.message		= statusCheck.message;         	                
+					stuResponse.message		= statusCheck.message;  
 					stuResponse.fileContent = cfhttp.fileContent;       	                
                 </cfscript>
 		<cfreturn stuResponse />
@@ -110,6 +129,7 @@ $${description}
 	<cffunction name="handleResponseOutput" access="public" output="false" hint="I handle the output format for the returned data.">
 		<cfargument name="data" 	required="true" 	type="Any" 					hint="The returned fileContent data from the cfhttp call." />
 		<cfargument name="format"	required="false" 	type="string" default="" 	hint="The chosen format for the returned data. XML, JSON or blank for HEADER information." />
+			
 			<cfset var stuResponse = StructNew() />
 			<cfset stuResponse = checkStatusCode(arguments.data.statusCode) />			
 			<cfswitch expression="#arguments.format#">
@@ -127,7 +147,12 @@ $${description}
 					<cfset stuResponse.data = arguments.data.ResponseHeader />
 				</cfcase>
 				<cfcase value="object">
-					<cfset stuResponse.data = arguments.data.fileContent.toByteArray() />
+					<cfset stuResponse.data = arguments.data.fileContent/>
+					<cfif  isObject(arguments.data.fileContent)>
+						<cfset stuResponse.data = arguments.data.fileContent.toByteArray()/>
+					<cfelse>
+						<cfset stuResponse.data = ToBinary(arguments.data.fileContent)/>
+					</cfif>
 				</cfcase>
 				<cfdefaultcase>
 					<cfset stuResponse.data = arguments.data.FileContent />
