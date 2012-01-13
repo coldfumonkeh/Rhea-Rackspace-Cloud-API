@@ -54,16 +54,6 @@ $${description}
 			<cfset var statusCheck	= '' />
 			<cfset var stuResponse 	= StructNew() />	
 			
-			<!---
-			<cfhttp method="POST" charset="utf-8" url="#variables.mosso_storage_url#/#_encodeContainerName(arguments.container)#/#_encodeObjectName(arguments.objectName)#">
-				<cfhttpparam type="header" name="X-Auth-Token" value="#variables.mosso_auth_token#" />
-				<cfif isDefined("arguments.objectMeta")>
-					<cfloop list="#StructKeyList(arguments.objectMeta)#" index="i">
-						<cfhttpparam type="header" name="#variables.MOSSO_META_HEADER_PREFIX##i#" value="#StructFind(arguments.objectMeta, i)#" />
-					</cfloop>
-				</cfif>
-		</cfhttp>
-		--->	
 				<cfhttp url="#arguments.remoteURL#"
 					 method="#arguments.remoteMethod#"
 					 useragent="cloudFiles">
@@ -151,7 +141,7 @@ $${description}
 					<cfif  isObject(arguments.data.fileContent)>
 						<cfset stuResponse.data = arguments.data.fileContent.toByteArray()/>
 					<cfelse>
-						<cfset stuResponse.data = ToBinary(arguments.data.fileContent)/>
+						<cfset stuResponse.data = ToBinary(Tobase64(arguments.data.fileContent))/>
 					</cfif>
 				</cfcase>
 				<cfdefaultcase>
