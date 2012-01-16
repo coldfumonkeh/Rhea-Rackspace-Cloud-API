@@ -109,8 +109,16 @@ $${description}
 	
 	<cffunction name="deleteContainer" access="public" output="false" returntype="Any" hint="This method permanently removes a Container">
 		<cfargument name="containerName" 	required="true" 	type="string" 									hint="Name of the container you wish to delete" />
+		<cfargument name="recursive"		required="false"	type="boolean" 	default=false					hint="If True will delete all objects in the container and then delete the container">
 		<cfargument name="format" 			required="false" 	type="string" 	default="#getReturnFormat()#"	hint="Specify either JSON or XML to return the respective serialized response." />
-		<cfreturn getStorage().deleteContainer(getAuthResponse(),arguments.containerName,arguments.format) />
+		<cfreturn getStorage().deleteContainer(getAuthResponse(),arguments.containerName,arguments.recursive,arguments.format) />
+	</cffunction>
+	
+	<cffunction name="renameContainer" access="public" output="false" returntype="Any" hint="This method renames a Container">
+		<cfargument name="sourceContainerName" 	required="true" 	type="string" 									hint="Name of the container you wish to rename" />
+		<cfargument name="destContainerName"	required="false"	type="string" 									hint="New Name of the container">
+		<cfargument name="format" 				required="false" 	type="string" 	default="#getReturnFormat()#"	hint="Specify either JSON or XML to return the respective serialized response." />
+		<cfreturn getStorage().renameContainer(getAuthResponse(),arguments.sourceContainerName,arguments.destContainerName,arguments.format) />
 	</cffunction>
 	
 	<!--- STORAGE OBJECT SERVICES --->
@@ -148,8 +156,11 @@ $${description}
 	
 	<cffunction name="putObject" access="public" output="false" returntype="Any" hint="I am used to write, or overwrite, an Object's metadata and content">
 		<cfargument name="containerName" 	required="true" 	type="string"									hint="Name of the container you wish to place the object into." />
-		<cfargument name="object"			required="true" 	type="Any"										hint="The Object data" />
+		<cfargument name="object"			required="true" 	type="Any"										hint="The Object data. This can be a file path or a structure that contains file size, file mime type (such as application), file mime subtype (such as pdf), the server directory & the file name." />
 		<cfargument name="format" 			required="false" 	type="string"	default="#getReturnFormat()#"	hint="Specify either JSON or XML to return the respective serialized response." />
+		<cfif isStruct(arguments.object) IS False AND fileExists(object)>
+			<cfset arguments.object=fileInfo(arguments.object)>
+		</cfif>
 		<cfreturn getStorage().putObject(getAuthResponse(),arguments.containerName,arguments.object,arguments.format) />
 	</cffunction>
 	
@@ -159,6 +170,37 @@ $${description}
 		<cfargument name="format" 			required="false" 	type="string" 	default="#getReturnFormat()#"	hint="Specify either JSON or XML to return the respective serialized response." />
 		<cfreturn getStorage().deleteObject(getAuthResponse(),arguments.containerName,arguments.objectName,arguments.format) />
 	</cffunction>
+	
+	<cffunction name="copyObject" access="public" output="false" returntype="Any" hint="I copy an object and it's metadata">
+		<cfargument name="sourceContainerName" 	required="true" 	type="string" 								hint="Name of the Container you wish to copy the Object from." />
+		<cfargument name="sourceObject"			required="true" 	type="Any"									hint="The source Object." />
+		<cfargument name="destContainerName" 	required="true" 	type="string" 								hint="Name of the object you wish to copy." />
+		<cfargument name="destObject"			required="true" 	type="Any"									hint="The target Object." />
+		<cfargument name="format" 				required="false" 	default="#getReturnFormat()#"				hint="Specify either JSON or XML to return the respective serialized response." />
+		<cfreturn getStorage().copyObject(getAuthResponse(),arguments.sourceContainerName,arguments.sourceObject,arguments.destContainerName,arguments.destObject,arguments.format) />
+	</cffunction>
+	
+	<cffunction name="renameObject" access="public" output="false" returntype="Any" hint="I rename an object and it's metadata">
+		<cfargument name="sourceContainerName" 	required="true" 	type="string" 								hint="Name of the Container you wish to copy the Object from." />
+		<cfargument name="sourceObject"			required="true" 	type="Any"									hint="The source Object." />
+		<cfargument name="destContainerName" 	required="true" 	type="string" 								hint="Name of the object you wish to copy." />
+		<cfargument name="destObject"			required="true" 	type="Any"									hint="The target Object." />
+		<cfargument name="format" 				required="false" 	default="#getReturnFormat()#"				hint="Specify either JSON or XML to return the respective serialized response." />
+		<cfset var metaReturn = getStorage().copyObject(getAuthResponse(),arguments.sourceContainerName,arguments.sourceObject,arguments.destContainerName,arguments.destObject,arguments.format) />
+		<cfset getStorage().deleteObject(getAuthResponse(),arguments.sourceContainerName,arguments.sourceObject,arguments.format) />
+		<cfreturn metaReturn>
+	</cffunction>
+	
+	<cffunction name="moveObject" access="public" output="false" returntype="Any" hint="I rename an object and it's metadata">
+		<cfargument name="sourceContainerName" 	required="true" 	type="string" 								hint="Name of the Container you wish to copy the Object from." />
+		<cfargument name="sourceObject"			required="true" 	type="Any"									hint="The source Object." />
+		<cfargument name="destContainerName" 	required="true" 	type="string" 								hint="Name of the object you wish to copy." />
+		<cfargument name="format" 				required="false" 	default="#getReturnFormat()#"				hint="Specify either JSON or XML to return the respective serialized response." />
+		<cfset var metaReturn = getStorage().copyObject(getAuthResponse(),arguments.sourceContainerName,arguments.sourceObject,arguments.destContainerName,arguments.sourceObject,arguments.format) />
+		<cfset getStorage().deleteObject(getAuthResponse(),arguments.sourceContainerName,arguments.sourceObject,arguments.format) />
+		<cfreturn metaReturn>
+	</cffunction>
+	
 	
 	<!--- CDN RELATED METHODS --->
 	<cffunction name="getCDNContainers" access="public" output="false" returntype="any" hint="I return a list of CDN-enabled Containers.">
@@ -187,4 +229,17 @@ $${description}
 		<cfreturn getCDNAccount().setCDNContainerAttributes(getAuthResponse(),arguments.containerName,arguments.format) />
 	</cffunction>
 	
+	<!--- Helper functions --->
+	<cffunction name="fileInfo">
+		<cfargument name="path" type="string" required="true">
+		<cfset var myFileInfo = getFileInfo(arguments.path)>
+		<cfset var fileStruct = structNew()>
+		<cfset fileStruct.FileSize = myFileInfo.size>
+		<cfset fileStruct.fullcontentType = getPageContext().getServletContext().getMimeType(myFileInfo.path)>
+		<cfset fileStruct.contentType = listFirst(fileStruct.fullcontentType, "/")>
+		<cfset fileStruct.contentSubType = listLast(fileStruct.fullcontentType, "/")>
+		<cfset fileStruct.serverDirectory = myFileInfo.parent>
+		<cfset filestruct.serverFile = myFileInfo.name>
+		<cfreturn  fileStruct>
+	</cffunction>
 </cfcomponent>

@@ -69,6 +69,9 @@ $${description}
 						<cfif structKeyExists(arguments.postArgs, 'file')>
 							<cfhttpparam name="file" type="file" file="#arguments.postArgs['file']#" />
 						</cfif>
+						<cfif structKeyExists(arguments.postArgs, 'X-Copy-From')>
+							<cfhttpparam name="X-Copy-From" type="header" value="#arguments.postArgs['X-Copy-From']#" />
+						</cfif>
 						<cfif structKeyExists(arguments.postArgs, 'metaData')>
 							<cfloop list="#StructKeyList(arguments.postArgs.metaData)#" index="i">
 								<cfhttpparam type="header" name="#variables.META_HEADER_PREFIX##i#" value="#StructFind(arguments.postArgs.metaData, i)#" />
@@ -76,8 +79,7 @@ $${description}
 						</cfif>
 					</cfif>
 				</cfhttp>
-				
-				
+								
 				<cfscript>
 					statusCheck 			= checkStatusCode(cfhttp.StatusCode);
 	            	stuResponse.response 	= cfhttp;
@@ -129,8 +131,11 @@ $${description}
 					</cfif>
 				</cfcase>
 				<cfcase value="json">
-					<cfif len(arguments.data.filecontent)>
+					<cfif len(arguments.data.filecontent) and isJSON(arguments.data.filecontent)>
 						<cfset stuResponse.data = serializeJSON(deserializeJSON(arguments.data.filecontent)) />
+					</cfif>
+					<cfif len(arguments.data.filecontent) and isJSON(arguments.data.filecontent) IS false>
+						<cfset stuResponse.data = serializeJSON(arguments.data.filecontent) />
 					</cfif>
 				</cfcase>
 				<cfcase value="objectMeta">
