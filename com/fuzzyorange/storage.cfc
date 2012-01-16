@@ -109,9 +109,22 @@ $${description}
 	<cffunction name="deleteContainer" access="public" output="false" returntype="Any" hint="This method permanently removes a Container">
 		<cfargument name="authResponse"		required="true" 	type="com.fuzzyorange.beans.authResponse" 	hint="The authResponse bean" />
 		<cfargument name="containerName" 	required="true" 	type="string" 								hint="Name of the container you wish to delete" />
+		<cfargument name="recursive" 		required="true" 	type="boolean" 	default=false				hint="If True will delete all objects in the container and then delete the container." />
 		<cfargument name="format" 			required="true" 	type="string" 								hint="Specify either JSON or XML to return the respective serialized response." />
 			<cfset var response 	= "" />
 			<cfset var strURL 		= '' />
+			<cfset var ObjArray = arrayNew(1)/>
+			<cfset var x = ""/>
+			
+			<cfif arguments.recursive IS True>
+				<cfset ObjArray =  deserializeJSON(getObjectsInContainer(authResponse=authResponse, containerName=containerName, format="JSON").data)/>
+				<cfif isArray(ObjArray)>
+					 <cfloop  array="#objArray#" index="x">
+				 		<cfset deleteObject(authResponse, containerName, x.name, format)>
+					</cfloop> 
+				</cfif>
+			</cfif>	
+				
 				<cfscript>
 					strURL 		= strURL & arguments.authResponse.getStorageURL() &
 							   		'/' & arguments.containerName;
@@ -128,6 +141,31 @@ $${description}
 					}  	                
                 </cfscript>
 		<cfreturn response />
+	</cffunction>
+	
+	<cffunction name="renameContainer" access="public" output="false" returntype="Any" hint="This method creates a new container, copies all objects to the new container and then deletes to old container.">
+		<cfargument name="authResponse"			required="true" 	type="com.fuzzyorange.beans.authResponse" 	hint="The authResponse bean" />
+		<cfargument name="sourceContainerName" 	required="true" 	type="string" 								hint="Name of the container you wish to rename" />
+		<cfargument name="destContainerName"	required="true" 	type="string" 								hint="Name of the renamed container" />
+		<cfargument name="format" 				required="true" 	type="string" 								hint="Specify either JSON or XML to return the respective serialized response." />
+		<cfset var response 	= "" />
+		<cfset var newContainer = "" />
+		<cfset var ObjArray = arrayNew(1) />
+		<cfset var delContainer = "" />
+		<!--- Create target container --->
+		<cfset newContainer =  createContainer(authResponse, destContainerName, format) />
+		<cfif newContainer.success IS false>
+			<cfthrow message = newContainer.message />
+		</cfif>
+		<!--- Copy to new container and delete from orginial container --->
+		<cfset ObjArray =  deserializeJSON(getObjectsInContainer(authResponse=authResponse, containerName=sourceContainerName, format="JSON").data) />
+		<cfloop  array="#objArray#" index="x">
+			<cfset copyObject(authResponse, sourceContainerName, x.name, destContainerName, x.name, format) />
+			<cfset deleteObject(authResponse, sourceContainerName, x.name, format) />
+		</cfloop> 
+		<!--- Delete old container --->
+		<cfset delContainer = deleteContainer(authResponse,sourceContainerName,false,format) />
+		<cfreturn delContainer>
 	</cffunction>
 	
 	<!--- OBJECT RELATED METHODS --->
@@ -271,6 +309,31 @@ $${description}
 					response 	= makeAPICall(remoteURL=strURL,
 										remoteMethod='DELETE',
 										authToken=arguments.authResponse.getAuthToken());
+					response 	= handleResponseOutput(response.response, 'objectMeta');
+				</cfscript>
+		<cfreturn response />
+	</cffunction>
+	
+	<cffunction name="copyObject" access="public" output="false" returntype="Any" hint="I am used to copy an object and it's metaData">
+		<cfargument name="authResponse"			required="true" 	type="com.fuzzyorange.beans.authResponse" 	hint="The authResponse bean" />
+		<cfargument name="sourceContainerName" 	required="true" 	type="string" 								hint="Name of the Container you wish to copy the Object from." />
+		<cfargument name="sourceObject"			required="true" 	type="Any"									hint="The source Object." />
+		<cfargument name="destContainerName" 	required="true" 	type="string" 								hint="Name of the object you wish to copy." />
+		<cfargument name="destObject"			required="true" 	type="Any"									hint="The target Object." />
+		<cfargument name="format" 				required="true" 	type="string" 								hint="Specify either JSON or XML to return the respective serialized response." />
+			<cfset var response = "" />
+			<cfset var strURL	= '' />
+			<cfset var sourceMeta = getObjectMeta(authResponse,sourceContainerName,sourceObject,format)>
+				<cfscript>
+					stuFileData = structNew();
+					stuFileData['Content-Length'] 	= sourceMeta.data['Content-Length'];
+					stuFileData['Content-type'] 	= sourceMeta.data['Content-type'];
+					stuFileData['X-Copy-From'] = arguments.sourceContainerName & '/' & arguments.sourceObject;
+					strURL		= arguments.authResponse.getStorageURL() & '/' & arguments.destContainerName & '/' & arguments.destObject;
+					response 	= makeAPICall(remoteURL=strURL,
+										remoteMethod='PUT',
+										authToken=arguments.authResponse.getAuthToken(),
+										postArgs=stuFileData);
 					response 	= handleResponseOutput(response.response, 'objectMeta');
 				</cfscript>
 		<cfreturn response />
