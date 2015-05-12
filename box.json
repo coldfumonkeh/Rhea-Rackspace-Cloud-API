@@ -1,0 +1,29 @@
+{
+  "name" : "Rhea Rackspace Cloud API",
+  "slug" : "rhea-rackspace-cloud-api",
+  "version" : "1.4.8.0",
+  "author" : "Matt Gifford <matt@monkehworks.com>",
+  "location" : "https://github.com/coldfumonkeh/rhea-rackspace-cloud-api",
+  "directory" : "",
+  "createPackageDirectory" : "false",
+  "Homepage" : "https://github.com/coldfumonkeh/rhea-rackspace-cloud-api",
+  "Documentation" : "https://github.com/coldfumonkeh/rhea-rackspace-cloud-api",
+  "Repository" : {
+    "type" : "git", "URL" : "https://github.com/coldfumonkeh/rhea-rackspace-cloud-api"
+  },
+  "Bugs" : "https://github.com/coldfumonkeh/rhea-rackspace-cloud-api/issues",
+  "shortDescription" : "A ColdFusion wrapper to interact with the Rackspace Cloud API",
+  "keywords" : [ "rackspace", "api", "cloud" ],
+  "private" : "false",
+  "engines" : [
+    { "type" : "railo", "version" : ">=4.1.x" },
+    { "type" : "adobe", "version" : ">=9.0.0" }
+  ],
+  "defaultEngine" : "railo",
+  "defaultPort" : "8085",
+  "License" : [
+    { "type" : "MIT", "URL" : "" }
+  ],
+  "Contributors" : [ {"name": "Matt Gifford", "url": "https://www.monkehworks.com"} ],
+  "ignore" : [ "tests/*", "README.md", "Vagrantfile", "mxunit/*", ".gitignore", "travis.yml", "build.xml" ]
+}
